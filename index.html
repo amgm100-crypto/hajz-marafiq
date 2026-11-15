@@ -113,6 +113,19 @@
   .hint{font-size:12px;color:var(--muted)}
   .secttl{grid-column:1/-1;font-weight:800;color:var(--gold-t);border-bottom:1px dashed var(--line);padding-bottom:4px;margin-top:4px}
   .periods{display:flex;gap:8px;flex-wrap:wrap}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips label{position:relative;display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px;font-weight:500;user-select:none}
+  .chips label:hover{border-color:var(--gold)}
+  .chips input{position:absolute;opacity:0;pointer-events:none}
+  .chips label:has(input:checked){background:var(--navy);border-color:var(--navy);color:#fff}
+  .chips label:has(input:focus-visible){outline:2px solid var(--gold);outline-offset:2px}
+  .chips label small{font-size:11px;opacity:.8}
+  .chips.big label{padding:9px 18px;font-weight:700}
+  .other{margin-top:8px}
+  .tags{display:flex;flex-wrap:wrap;gap:4px}
+  .tags span,.kv .tags span{display:inline-block;background:var(--navy-l);color:var(--navy);border-radius:999px;padding:1px 9px;font-size:12px}
+  .copyrow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0}
+  .refcode{font-family:Lato;font-weight:900;font-size:24px;letter-spacing:.06em;background:#fff;border:2px dashed var(--free);border-radius:10px;padding:4px 16px;direction:ltr;user-select:all}
   .periods button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 14px;cursor:pointer;font-size:13px}
   .periods button:hover{border-color:var(--gold);background:var(--gold-l)}
   .busylist{background:var(--part-bg);border-radius:10px;padding:8px 12px;font-size:13px;color:#6b4a0c}
@@ -487,7 +500,7 @@
         </div>
         <div class="tblwrap">
           <table>
-            <thead><tr><th>رقم الطلب</th><th>الفعالية</th><th>المرفق</th><th>من</th><th>إلى</th><th>الحضور</th><th>القسم المختص</th><th>الجهة المشاركة</th><th>الحالة</th><th>مسؤول الحجز</th><th>المبلغ</th></tr></thead>
+            <thead><tr><th>رقم الطلب</th><th>الفعالية</th><th>النوع</th><th>المرفق</th><th>الموعد</th><th>الحضور</th><th>القسم المختص</th><th>الجهة المشاركة</th><th>الحالة</th><th>مسؤول الحجز</th><th>المبلغ</th></tr></thead>
             <tbody id="tbody"></tbody>
           </table>
         </div>
@@ -538,6 +551,11 @@
               <div class="panel"><header><h3>حسب المرفق</h3></header><div class="tblwrap"><table id="rByFac"></table></div></div>
               <div class="panel"><header><h3>حسب القسم المختص</h3></header><div class="tblwrap"><table id="rByDept"></table></div></div>
             </div>
+            <div class="grid2" style="margin-top:18px">
+              <div class="panel"><header><h3>حسب نوع الفعالية</h3></header><div class="tblwrap"><table id="rByType"></table></div></div>
+              <div class="panel"><header><h3>حسب نوع الجهة المتقدمة</h3></header><div class="tblwrap"><table id="rByOrg"></table></div></div>
+            </div>
+            <div class="panel" style="margin-top:18px"><header><h3>الفئات المستهدفة والاحتياجات</h3><small class="muted">عدد الحجوزات المعتمدة</small></header><div class="pb" id="rAudNeeds"></div></div>
             <div class="panel" style="margin-top:18px"><header><h3>تفاصيل الحجوزات</h3><small class="muted" id="rCount"></small></header>
               <div class="tblwrap"><table id="rDetail"></table></div></div>
             <div class="dfoot" data-foot></div>
@@ -559,21 +577,39 @@
     <div class="form">
       <div class="secttl">موعد الحجز</div>
       <div class="fld full">
-        <div class="periods" id="periods"></div>
+        <label>مدة البرنامج <span class="req">*</span></label>
+        <div class="chips big" id="durChips">
+          <label><input type="radio" name="dur" value="one" checked>يوم واحد</label>
+          <label><input type="radio" name="dur" value="multi">عدة أيام</label>
+        </div>
       </div>
-      <div class="fld"><label for="sDate">من تاريخ <span class="req">*</span></label><input class="f" type="date" id="sDate" required></div>
-      <div class="fld"><label for="sTime">الساعة <span class="req">*</span></label><input class="f" type="time" id="sTime" required></div>
-      <div class="fld"><label for="eDate">إلى تاريخ <span class="req">*</span></label><input class="f" type="date" id="eDate" required></div>
-      <div class="fld"><label for="eTime">الساعة <span class="req">*</span></label><input class="f" type="time" id="eTime" required></div>
+      <div class="fld"><label for="sDate" id="sDateLbl">التاريخ <span class="req">*</span></label><input class="f" type="date" id="sDate" required></div>
+      <div class="fld" id="eDateFld" hidden><label for="eDate">إلى تاريخ <span class="req">*</span></label><input class="f" type="date" id="eDate"></div>
+      <div class="fld full"><div class="periods" id="periods"></div></div>
+      <div class="fld"><label for="sTime" id="sTimeLbl">من الساعة <span class="req">*</span></label><input class="f" type="time" id="sTime" required></div>
+      <div class="fld"><label for="eTime">إلى الساعة <span class="req">*</span></label><input class="f" type="time" id="eTime" required></div>
+      <div class="fld full hint" id="durHint"></div>
 
       <div class="secttl">بيانات الفعالية</div>
+      <div class="fld full"><label>نوع الفعالية <span class="req">*</span></label>
+        <div class="chips" id="typeChips"></div>
+        <input class="f other" id="typeOther" maxlength="60" placeholder="اكتب نوع الفعالية" hidden></div>
       <div class="fld full"><label for="title">اسم الفعالية <span class="req">*</span></label><input class="f" id="title" maxlength="120" required></div>
-      <div class="fld full"><label for="desc">وصف الفعالية <span class="req">*</span></label><textarea class="f" id="desc" rows="3" maxlength="1000" required placeholder="نبذة عن الفعالية وفئتها المستهدفة واحتياجاتها (صوتيات، شاشة، ضيافة…)"></textarea></div>
+      <div class="fld full"><label for="desc">وصف الفعالية <span class="req">*</span></label><textarea class="f" id="desc" rows="3" maxlength="1000" required placeholder="نبذة عن الفعالية وأهدافها"></textarea></div>
+      <div class="fld full"><label>الفئة المستهدفة <span class="req">*</span> <span class="hint">(يمكن اختيار أكثر من فئة)</span></label>
+        <div class="chips" id="audChips"></div></div>
       <div class="fld"><label for="att">عدد الحضور المتوقع <span class="req">*</span></label><input class="f" type="number" id="att" min="1" max="5000" inputmode="numeric" required></div>
       <div class="fld"><label for="dept">القسم المختص <span class="req">*</span></label><input class="f" id="dept" list="deptList" maxlength="80" required><datalist id="deptList"></datalist></div>
       <div class="fld full"><label for="partner">الجهة المشاركة</label><input class="f" id="partner" maxlength="120" placeholder="اختياري"></div>
 
+      <div class="secttl">احتياجات البرنامج</div>
+      <div class="fld full"><div class="chips" id="needChips"></div>
+        <div class="hint" id="needHint" style="margin-top:6px"></div></div>
+
       <div class="secttl">بيانات مقدّم الطلب</div>
+      <div class="fld full"><label>نوع الجهة المتقدمة للحجز <span class="req">*</span></label>
+        <div class="chips" id="orgChips"></div>
+        <input class="f other" id="orgOther" maxlength="60" placeholder="اكتب نوع الجهة" hidden></div>
       <div class="fld"><label for="aname">الاسم <span class="req">*</span></label><input class="f" id="aname" maxlength="80" required></div>
       <div class="fld"><label for="aphone">رقم الجوال <span class="req">*</span></label><input class="f" id="aphone" inputmode="tel" maxlength="15" placeholder="05xxxxxxxx" required></div>
     </div>
@@ -638,6 +674,14 @@ const CONFIG = {
     "يصلك رقم للطلب لمتابعة حالته حتى اعتماده"
   ],
   CONTACT: { handle: "@und_4236", phone: "0533406050", site: "" },  // يظهر في تذييل التقارير
+  EVENT_TYPES: ["اجتماع","حفل","برنامج","دورة تدريبية","ندوة","لقاء","أخرى"],
+  AUDIENCES: ["رجال","نساء","فتيات","أطفال","شباب"],
+  ORG_TYPES: ["قطاع حكومي","قطاع غير ربحي","قطاع خاص وشركات","أخرى"],
+  NEEDS: [
+    {name:"صوتيات"},{name:"شاشة"},{name:"بروجكتر"},
+    {name:"ضيافة", note:"يجب التنسيق مع الجمعية"},
+    {name:"سبورة"},{name:"طاولات دائرية"},{name:"كراسي حمراء"},{name:"فرشة خزامى"}
+  ],
   DEPTS: ["قسم البرامج والمشاريع","قسم الشراكات","قسم التطوع","قسم الإعلام والتسويق","الإدارة التنفيذية"]
 };
 
@@ -659,7 +703,29 @@ const fmtD  = d=>new Date(d).toLocaleDateString(LOC,{weekday:"long",day:"numeric
 const fmtT  = d=>new Date(d).toLocaleTimeString(LOC,{hour:"numeric",minute:"2-digit"});
 const hijri = (d,o)=>new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn",o).format(d);
 const sameDay=(a,b)=>a.getFullYear()==b.getFullYear()&&a.getMonth()==b.getMonth()&&a.getDate()==b.getDate();
-const overlap=(a,b)=>new Date(a.start_at)<new Date(b.end_at)&&new Date(a.end_at)>new Date(b.start_at);
+// الحجز إما فترة متصلة، أو عدة أيام بنفس الساعات يوميًا (is_daily)
+function segs(b){
+  const s=new Date(b.start_at), e=new Date(b.end_at);
+  if(!b.is_daily) return [[+s,+e]];
+  const out=[], d=new Date(s.getFullYear(),s.getMonth(),s.getDate()), last=new Date(e.getFullYear(),e.getMonth(),e.getDate());
+  for(;d<=last;d.setDate(d.getDate()+1)){
+    const a=new Date(d.getFullYear(),d.getMonth(),d.getDate(),s.getHours(),s.getMinutes()), z=new Date(d.getFullYear(),d.getMonth(),d.getDate(),e.getHours(),e.getMinutes());
+    if(z>a) out.push([+a,+z]);
+  }
+  return out;
+}
+const overlap=(a,b)=>segs(a).some(([s,e])=>segs(b).some(([s2,e2])=>s<e2&&e>s2));
+const daySegs=(b,ds,de)=>segs(b).filter(([s,e])=>s<+de&&e>+ds);
+const fmtDay=d=>new Date(d).toLocaleDateString(LOC,{weekday:"short",day:"numeric",month:"short"});
+function fmtRange(b){
+  const s=new Date(b.start_at), e=new Date(b.end_at);
+  if(b.is_daily) return `${fmtDay(s)} – ${fmtDay(e)} · يوميًا ${fmtT(s)} – ${fmtT(e)} (${daysTxt(segs(b).length)})`;
+  if(sameDay(s,e)) return `${fmtDay(s)} · ${fmtT(s)} – ${fmtT(e)}`;
+  return `${fmtDT(s)} – ${fmtDT(e)}`;
+}
+const daysTxt=n=>n==1?"يوم واحد":n==2?"يومان":n<=10?`${n} أيام`:`${n} يومًا`;
+const arr=v=>Array.isArray(v)?v:(v?String(v).replace(/[{}"]/g,"").split(",").filter(Boolean):[]);
+const tagsHTML=v=>{const a=arr(v);return a.length?`<span class="tags">${a.map(x=>`<span>${esc(x)}</span>`).join("")}</span>`:"—"};
 const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2600)}
 function uuid(){return (crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c=="x"?r:(r&3|8)).toString(16)}))}
@@ -671,7 +737,7 @@ let sb=null, session=null;
 if(!DEMO) sb=window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 const Demo={
-  key:"ahliya_bookings_demo_v3", mem:null,
+  key:"ahliya_bookings_demo_v4", mem:null,
   all(){ if(this.mem) return this.mem;
     try{const s=localStorage.getItem(this.key); if(s) return this.mem=JSON.parse(s);}catch(e){}
     return this.mem=this.seed(); },
@@ -679,12 +745,12 @@ const Demo={
   seed(){
     const n=new Date(), y=n.getFullYear(), m=n.getMonth(), d0=n.getDate();
     const at=(dd,h,mi=0)=>new Date(y,m,d0+dd,h,mi).toISOString();
-    const mk=o=>({id:uuid(),created_at:new Date().toISOString(),officer:"",admin_note:"",applicant_name:"(مثال)",applicant_phone:"0500000000",partner:"",...o});
+    const mk=o=>({id:uuid(),created_at:new Date().toISOString(),officer:"",admin_note:"",applicant_name:"(مثال)",applicant_phone:"0500000000",partner:"",is_daily:false,event_type:"برنامج",audience:["شباب"],org_type:"قطاع غير ربحي",needs:["صوتيات","شاشة"],...o});
     return [
-      mk({facility:"theater",title:"حفل تكريم المتطوعين",description:"حفل سنوي لتكريم المتطوعين المتميزين.",department:"قسم التطوع",attendees:180,start_at:at(2,16),end_at:at(2,23),status:"approved",officer:"أ. خالد",amount:1500}),
+      mk({facility:"theater",title:"حفل تكريم المتطوعين",description:"حفل سنوي لتكريم المتطوعين المتميزين.",department:"قسم التطوع",event_type:"حفل",audience:["رجال","شباب"],needs:["صوتيات","شاشة","ضيافة","كراسي حمراء"],attendees:180,start_at:at(2,16),end_at:at(2,23),status:"approved",officer:"أ. خالد",amount:1500}),
       mk({facility:"theater",title:"أمسية ثقافية",description:"أمسية حوارية.",department:"قسم الإعلام والتسويق",attendees:150,start_at:at(5,8),end_at:at(5,14,30),status:"pending"}),
       mk({facility:"theater",title:"ملتقى الأسرة",description:"ملتقى مفتوح للأسر.",department:"قسم الشراكات",partner:"بلدية محافظة عنيزة",attendees:400,start_at:at(8,8),end_at:at(8,23),status:"approved",officer:"أ. خالد",amount:2500}),
-      mk({facility:"training",title:"دورة إدارة المشاريع الاجتماعية",description:"دورة تدريبية لمدة يومين.",department:"قسم البرامج والمشاريع",partner:"مركز التدريب الأهلي",attendees:30,start_at:at(3,8),end_at:at(4,23),status:"approved",officer:"أ. سعد",amount:800}),
+      mk({facility:"training",title:"دورة إدارة المشاريع الاجتماعية",description:"دورة تدريبية لمدة يومين.",department:"قسم البرامج والمشاريع",partner:"مركز التدريب الأهلي",event_type:"دورة تدريبية",audience:["نساء"],org_type:"قطاع خاص وشركات",needs:["بروجكتر","سبورة","طاولات دائرية"],is_daily:true,attendees:30,start_at:at(3,16),end_at:at(4,20),status:"approved",officer:"أ. سعد",amount:800}),
       mk({facility:"lab",title:"ورشة مهارات الحاسب للشباب",description:"ورشة تطبيقية.",department:"قسم البرامج والمشاريع",attendees:20,start_at:at(4,17),end_at:at(4,20),status:"pending"}),
       mk({facility:"events",title:"لقاء تعريفي بالمنح",description:"لقاء للتعريف بالمنح.",department:"الإدارة التنفيذية",attendees:40,start_at:at(6,9),end_at:at(6,12),status:"rejected",admin_note:"تعارض مع صيانة المقر"})
     ];
@@ -695,7 +761,7 @@ const API={
   // للزائر: أوقات الإشغال فقط (المرفق + من/إلى) دون أي تفاصيل
   async busy(from,to){
     if(DEMO) return Demo.all().filter(b=>b.status!="rejected"&&new Date(b.start_at)<to&&new Date(b.end_at)>from)
-      .map(b=>({facility:b.facility,start_at:b.start_at,end_at:b.end_at,confirmed:b.status=="approved"}));
+      .map(b=>({facility:b.facility,start_at:b.start_at,end_at:b.end_at,is_daily:!!b.is_daily,confirmed:b.status=="approved"}));
     const {data,error}=await sb.from("bookings_busy").select("*").lt("start_at",to.toISOString()).gt("end_at",from.toISOString());
     if(error) throw error; return data;
   },
@@ -706,8 +772,8 @@ const API={
     if(error) throw error; return data;
   },
   async conflicts(fac,s,e){
-    if(DEMO) return Demo.all().filter(b=>b.facility==fac&&b.status!="rejected"&&overlap(b,{start_at:s,end_at:e})).map(b=>({start_at:b.start_at,end_at:b.end_at,confirmed:b.status=="approved"}));
-    const {data,error}=await sb.from("bookings_busy").select("start_at,end_at,confirmed").eq("facility",fac).lt("start_at",e).gt("end_at",s);
+    if(DEMO) return Demo.all().filter(b=>b.facility==fac&&b.status!="rejected"&&new Date(b.start_at)<new Date(e)&&new Date(b.end_at)>new Date(s)).map(b=>({start_at:b.start_at,end_at:b.end_at,is_daily:!!b.is_daily,confirmed:b.status=="approved"}));
+    const {data,error}=await sb.from("bookings_busy").select("start_at,end_at,is_daily,confirmed").eq("facility",fac).lt("start_at",e).gt("end_at",s);
     if(error) throw error; return data;
   },
   async create(b){
@@ -780,6 +846,11 @@ function buildPublic(){
   for(let i=0;i<12;i++){const d=new Date(today.getFullYear(),today.getMonth()+i,1);opts+=`<option value="${i}">${d.toLocaleDateString(LOC,{month:"long",year:"numeric"})}${i==0?" (الشهر الحالي)":""}</option>`}
   $("#pMonth").innerHTML=opts;
   $("#periods").innerHTML=CONFIG.PERIODS.map((p,i)=>`<button type="button" data-per="${i}">${p.label} (${p.from}–${p.to})</button>`).join("");
+  const chip=(name,type,v,extra="")=>`<label><input type="${type}" name="${name}" value="${esc(v)}">${esc(v)}${extra}</label>`;
+  $("#typeChips").innerHTML=CONFIG.EVENT_TYPES.map(v=>chip("etype","radio",v)).join("");
+  $("#audChips").innerHTML=CONFIG.AUDIENCES.map(v=>chip("aud","checkbox",v)).join("");
+  $("#orgChips").innerHTML=CONFIG.ORG_TYPES.map(v=>chip("otype","radio",v)).join("");
+  $("#needChips").innerHTML=CONFIG.NEEDS.map(n=>chip("need","checkbox",n.name,n.note?` <small>(${esc(n.note)})</small>`:"")).join("");
   $("#deptList").innerHTML=CONFIG.DEPTS.map(d=>`<option value="${esc(d)}">`).join("");
 }
 
@@ -810,14 +881,14 @@ function dayWindow(d){
 }
 function dayBusy(d,fac){
   const ds=new Date(d.getFullYear(),d.getMonth(),d.getDate()), de=new Date(ds); de.setDate(de.getDate()+1);
-  return busyItems.filter(b=>b.facility==fac&&new Date(b.start_at)<de&&new Date(b.end_at)>ds)
+  return busyItems.filter(b=>b.facility==fac&&daySegs(b,ds,de).length)
     .sort((a,b)=>a.start_at.localeCompare(b.start_at));
 }
 function dayState(d,fac){
   const list=dayBusy(d,fac); if(!list.length) return "free";
   const [ws,we]=dayWindow(d);
   // دمج الفترات المحجوزة داخل ساعات التشغيل
-  const iv=list.map(b=>[Math.max(+new Date(b.start_at),+ws),Math.min(+new Date(b.end_at),+we)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);
+  const iv=list.flatMap(b=>segs(b)).map(([s,e])=>[Math.max(s,+ws),Math.min(e,+we)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);
   let covered=0,cs=null,ce=null;
   for(const [s,e] of iv){ if(cs===null){cs=s;ce=e} else if(s<=ce){ce=Math.max(ce,e)} else {covered+=ce-cs;cs=s;ce=e} }
   if(cs!==null) covered+=ce-cs;
@@ -846,20 +917,51 @@ function openRequest(dateStr){
   const d=new Date(dateStr+"T00:00");
   const f=FAC[pFac], list=dayBusy(d,pFac), st=dayState(d,pFac);
   $("#reqTitle").textContent=`طلب حجز ${f.name} — ${fmtD(d)}`;
-  $("#dayBusy").innerHTML=list.length?`<div class="busylist"><b>الأوقات المحجوزة في هذا اليوم:</b> ${list.map(b=>`${sameDay(new Date(b.start_at),d)?fmtT(b.start_at):"من يوم سابق"} – ${sameDay(new Date(b.end_at),d)?fmtT(b.end_at):"يوم لاحق"}`).join(" ، ")}</div>`:"";
+  const de=new Date(d); de.setDate(de.getDate()+1);
+  const times=list.flatMap(b=>daySegs(b,d,de)).sort((a,b)=>a[0]-b[0]);
+  $("#dayBusy").innerHTML=times.length?`<div class="busylist"><b>الأوقات المحجوزة في هذا اليوم:</b> ${times.map(([s,e])=>`${s<+d?"من يوم سابق":fmtT(s)} – ${e>+de?"يوم لاحق":fmtT(e)}`).join(" ، ")}</div>`:"";
   $("#reqForm").reset(); $("#reqForm").hidden=false; $("#doneBox").hidden=true; msg("#formMsg"); confirmPending=false;
-  $("#sDate").value=$("#eDate").value=dateStr; $("#sDate").min=$("#eDate").min=ymd(today);
+  $("#sDate").value=dateStr; $("#eDate").value=""; $("#sDate").min=$("#eDate").min=ymd(today);
+  syncDur(); syncOther();
   if(st=="full"){ $("#reqForm").hidden=true; $("#doneBox").hidden=false; $("#doneBox").innerHTML=`<div class="notice err">هذا اليوم محجوز بالكامل لـ${esc(f.name)}. اختر يومًا آخر أو مرفقًا آخر.</div>`; }
   openModal("#reqModal");
 }
-$("#periods").addEventListener("click",e=>{const b=e.target.closest("[data-per]");if(!b)return;const p=CONFIG.PERIODS[b.dataset.per];$("#sTime").value=p.from;$("#eTime").value=p.to;if(!$("#eDate").value)$("#eDate").value=$("#sDate").value;confirmPending=false;msg("#formMsg")});
-$("#sDate").addEventListener("change",()=>{ if(!$("#eDate").value||$("#eDate").value<$("#sDate").value) $("#eDate").value=$("#sDate").value; });
+const durVal=()=>(document.querySelector('input[name="dur"]:checked')||{}).value||"one";
+function syncDur(){
+  const multi=durVal()=="multi";
+  $("#eDateFld").hidden=!multi;
+  $("#sDateLbl").innerHTML=(multi?"من تاريخ":"التاريخ")+' <span class="req">*</span>';
+  $("#sTimeLbl").innerHTML=(multi?"يوميًا من الساعة":"من الساعة")+' <span class="req">*</span>';
+  if(multi&&$("#sDate").value&&(!$("#eDate").value||$("#eDate").value<=$("#sDate").value)){const d=new Date($("#sDate").value+"T00:00");d.setDate(d.getDate()+1);$("#eDate").value=ymd(d)}
+  $("#eDate").min=$("#sDate").value||ymd(today);
+  $("#durHint").textContent=multi?"يُحجز المرفق في كل يوم من الأيام المحددة خلال الساعات نفسها.":"";
+}
+function syncOther(){
+  $("#typeOther").hidden=(document.querySelector('input[name="etype"]:checked')||{}).value!="أخرى";
+  $("#orgOther").hidden=(document.querySelector('input[name="otype"]:checked')||{}).value!="أخرى";
+  const hosp=[...document.querySelectorAll('input[name="need"]:checked')].some(i=>i.value=="ضيافة");
+  $("#needHint").innerHTML=hosp?'<span style="color:var(--part);font-weight:700">⚠ الضيافة يجب التنسيق لها مسبقًا مع الجمعية.</span>':"";
+}
+$("#durChips").addEventListener("change",()=>{syncDur();confirmPending=false;msg("#formMsg")});
+["#typeChips","#orgChips","#needChips"].forEach(id=>$(id).addEventListener("change",syncOther));
+$("#periods").addEventListener("click",e=>{const b=e.target.closest("[data-per]");if(!b)return;const p=CONFIG.PERIODS[b.dataset.per];$("#sTime").value=p.from;$("#eTime").value=p.to;confirmPending=false;msg("#formMsg")});
+$("#sDate").addEventListener("change",syncDur);
 $("#reqForm").addEventListener("input",()=>{confirmPending=false});
 $("#reqForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const v=id=>$("#"+id).value.trim(), errs=[];
-  if(!v("sDate")||!v("sTime")||!v("eDate")||!v("eTime")) errs.push("موعد البداية والنهاية");
+  const multi=durVal()=="multi";
+  if(!v("sDate")||!v("sTime")||!v("eTime")||(multi&&!v("eDate"))) errs.push("موعد البرنامج");
+  const etype=(document.querySelector('input[name="etype"]:checked')||{}).value||"";
+  const evType=etype=="أخرى"?v("typeOther"):etype;
+  if(!evType) errs.push(etype=="أخرى"?"اكتب نوع الفعالية":"نوع الفعالية");
   if(!v("title")) errs.push("اسم الفعالية");
+  const audience=[...document.querySelectorAll('input[name="aud"]:checked')].map(i=>i.value);
+  if(!audience.length) errs.push("الفئة المستهدفة");
+  const otype=(document.querySelector('input[name="otype"]:checked')||{}).value||"";
+  const orgType=otype=="أخرى"?v("orgOther"):otype;
+  if(!orgType) errs.push(otype=="أخرى"?"اكتب نوع الجهة":"نوع الجهة المتقدمة");
+  const needs=[...document.querySelectorAll('input[name="need"]:checked')].map(i=>i.value);
   if(!v("desc")) errs.push("وصف الفعالية");
   const att=parseInt(v("att"),10); if(!(att>0)) errs.push("عدد الحضور المتوقع");
   if(!v("dept")) errs.push("القسم المختص");
@@ -867,27 +969,47 @@ $("#reqForm").addEventListener("submit",async e=>{
   const phone=v("aphone").replace(/[\s-]/g,"");
   if(!/^(05\d{8}|\+?9665\d{8})$/.test(phone)) errs.push("رقم جوال صحيح (05xxxxxxxx)");
   if(errs.length) return msg("#formMsg","err","أكمل الحقول التالية: "+errs.join("، "));
-  const s=new Date(`${v("sDate")}T${v("sTime")}`), en=new Date(`${v("eDate")}T${v("eTime")}`);
-  if(en<=s) return msg("#formMsg","err","وقت النهاية يجب أن يكون بعد وقت البداية.");
+  if(v("eTime")<=v("sTime")) return msg("#formMsg","err","وقت النهاية يجب أن يكون بعد وقت البداية.");
+  if(multi&&v("eDate")<=v("sDate")) return msg("#formMsg","err","في حجز عدة أيام يجب أن يكون تاريخ النهاية بعد تاريخ البداية.");
+  const s=new Date(`${v("sDate")}T${v("sTime")}`), en=new Date(`${multi?v("eDate"):v("sDate")}T${v("eTime")}`);
+  if(multi&&(en-s)/DAY>60) return msg("#formMsg","err","أقصى مدة للحجز الواحد ٦٠ يومًا.");
+  const probe={start_at:s.toISOString(),end_at:en.toISOString(),is_daily:multi};
   if(s<new Date()) return msg("#formMsg","err","لا يمكن الحجز في وقت مضى.");
   const btn=$("#sendBtn"); btn.disabled=true;
   try{
-    const cf=await API.conflicts(pFac,s.toISOString(),en.toISOString());
+    const cf=(await API.conflicts(pFac,s.toISOString(),en.toISOString())).filter(b=>overlap(b,probe));
     const appr=cf.filter(b=>b.confirmed), pend=cf.filter(b=>!b.confirmed);
-    if(appr.length) return msg("#formMsg","err",`المرفق محجوز في جزء من هذا الوقت (${appr.map(b=>`${fmtT(b.start_at)} – ${fmtT(b.end_at)}`).join("، ")}). اختر وقتًا آخر.`);
+    if(appr.length){
+      const clash=appr.flatMap(b=>segs(b)).filter(([a,z])=>segs(probe).some(([s2,e2])=>a<e2&&z>s2)).slice(0,4);
+      return msg("#formMsg","err",`المرفق محجوز في جزء من هذا الوقت (${clash.map(([a,z])=>`${fmtDay(a)} ${fmtT(a)} – ${fmtT(z)}`).join("، ")}). اختر وقتًا آخر.`);
+    }
     if(pend.length&&!confirmPending){
       confirmPending=true;
       return msg("#formMsg","warn","يوجد طلب آخر على هذا المرفق في الوقت نفسه وهو تحت الدراسة. اضغط «إرسال الطلب» مرة أخرى إن رغبت بالمتابعة، وستقرر الإدارة.");
     }
     const id=await API.create({facility:pFac,title:v("title"),description:v("desc"),department:v("dept"),partner:v("partner"),
-      attendees:att,start_at:s.toISOString(),end_at:en.toISOString(),applicant_name:v("aname"),applicant_phone:phone});
+      attendees:att,start_at:s.toISOString(),end_at:en.toISOString(),is_daily:multi,event_type:evType,audience,org_type:orgType,needs,
+      applicant_name:v("aname"),applicant_phone:phone});
+    const ref=id.slice(0,8).toUpperCase();
     $("#reqForm").hidden=true; $("#doneBox").hidden=false;
-    $("#doneBox").innerHTML=`<div class="notice ok" style="font-size:15px;line-height:2">تم استلام طلبك بنجاح ✓<br>رقم الطلب: <b dir="ltr" style="font-family:Lato;font-size:20px">${id.slice(0,8).toUpperCase()}</b><br>احتفظ بهذا الرقم، وتابع حالة طلبك من «الاستعلام عن حالة طلب» برقم الطلب وجوالك.</div><button class="btn" style="margin-top:14px" data-close>تم</button>`;
+    $("#doneBox").innerHTML=`<div class="notice ok" style="font-size:15px;line-height:2;text-align:center">تم استلام طلبك بنجاح ✓<br>رقم الطلب
+      <div class="copyrow"><span class="refcode" id="refCode">${ref}</span><button class="btn gold sm" type="button" id="copyRef">نسخ رقم الطلب</button></div>
+      احتفظ بهذا الرقم، وتابع حالة طلبك من «الاستعلام عن حالة طلب» برقم الطلب وجوالك.</div>
+      <button class="btn" style="margin-top:14px" data-close>تم</button>`;
+    $("#copyRef").addEventListener("click",()=>copyText(ref,$("#copyRef")));
     loadPublic();
   }catch(err){ console.error(err); msg("#formMsg","err","تعذّر إرسال الطلب، حاول مرة أخرى."); }
   finally{ btn.disabled=false; }
 });
 
+async function copyText(t,btn){
+  let ok=false;
+  try{await navigator.clipboard.writeText(t);ok=true}catch(e){
+    try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();ok=document.execCommand("copy");ta.remove()}catch(e2){}
+  }
+  if(ok){toast("تم نسخ رقم الطلب");if(btn){const o=btn.textContent;btn.textContent="تم النسخ ✓";setTimeout(()=>btn.textContent=o,2000)}}
+  else{const r=document.createRange();r.selectNodeContents($("#refCode"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast("حدّد الرقم وانسخه يدويًا")}
+}
 $("#lookForm").addEventListener("submit",async e=>{
   e.preventDefault();
   const ref=$("#lref").value.trim().toUpperCase(), phone=$("#lphone").value.replace(/[\s-]/g,"");
@@ -896,7 +1018,7 @@ $("#lookForm").addEventListener("submit",async e=>{
     const r=await API.lookup(ref,phone);
     if(!r.length) return msg("#lookMsg","err","لم نجد طلبًا بهذه البيانات. تأكد من رقم الطلب والجوال.");
     const b=r[0], f=FAC[b.facility]||{};
-    msg("#lookMsg","ok",`<b>${esc(b.title)}</b> — ${esc(f.name)}<br>${fmtDT(b.start_at)} – ${fmtDT(b.end_at)}<br>الحالة: <span class="badge ${b.status}">${STATUS[b.status]}</span>${b.officer?`<br>مسؤول الحجز: ${esc(b.officer)}`:""}${b.admin_note?`<br>ملاحظة الإدارة: ${esc(b.admin_note)}`:""}`);
+    msg("#lookMsg","ok",`<b>${esc(b.title)}</b> — ${esc(f.name)}<br>${fmtRange(b)}<br>الحالة: <span class="badge ${b.status}">${STATUS[b.status]}</span>${b.officer?`<br>مسؤول الحجز: ${esc(b.officer)}`:""}${b.admin_note?`<br>ملاحظة الإدارة: ${esc(b.admin_note)}`:""}`);
   }catch(err){console.error(err);msg("#lookMsg","err","تعذّر الاستعلام، حاول مرة أخرى.")}
 });
 
@@ -922,15 +1044,17 @@ function showView(v){
   $("#sidebar").classList.remove("open"); $("#sbMask").classList.remove("on");
   ({dash:renderDash,adm:renderAdm,cal:renderAdminCal,list:renderAdminCal,rep:renderRep})[v]();
 }
-const ovr=(b,from,to)=>new Date(b.start_at)<to&&new Date(b.end_at)>from;
+const ovr=(b,from,to)=>daySegs(b,from,to).length>0;
 // ساعات الإشغال داخل ساعات التشغيل ضمن مدى معيّن
 function bookedHours(b,from,to){
-  let s=Math.max(+new Date(b.start_at),+from), e=Math.min(+new Date(b.end_at),+to), h=0;
-  if(e<=s) return 0;
-  const d=new Date(s); d.setHours(0,0,0,0);
-  for(;+d<e;d.setDate(d.getDate()+1)){
-    const ws=+new Date(d.getFullYear(),d.getMonth(),d.getDate(),CONFIG.OPEN_HOUR), we=+new Date(d.getFullYear(),d.getMonth(),d.getDate(),CONFIG.CLOSE_HOUR);
-    h+=Math.max(0,Math.min(e,we)-Math.max(s,ws));
+  let h=0;
+  for(const [s0,e0] of segs(b)){
+    const s=Math.max(s0,+from), e=Math.min(e0,+to); if(e<=s) continue;
+    const d=new Date(s); d.setHours(0,0,0,0);
+    for(;+d<e;d.setDate(d.getDate()+1)){
+      const ws=+new Date(d.getFullYear(),d.getMonth(),d.getDate(),CONFIG.OPEN_HOUR), we=+new Date(d.getFullYear(),d.getMonth(),d.getDate(),CONFIG.CLOSE_HOUR);
+      h+=Math.max(0,Math.min(e,we)-Math.max(s,ws));
+    }
   }
   return h/36e5;
 }
@@ -968,7 +1092,7 @@ function renderDash(){
 function rowItem(b){
   const f=FAC[b.facility]||{}, d=new Date(b.start_at);
   return `<div class="rowi" data-bid="${b.id}"><div class="dt"><b>${d.getDate()}</b><small>${d.toLocaleDateString(LOC,{month:"short"})}</small></div>
-    <div class="tx"><b>${esc(b.title)}</b><small><span class="fac"><i style="background:${f.color}"></i>${esc(f.name)}</span> · ${fmtT(b.start_at)} – ${fmtT(b.end_at)} · ${esc(b.department)}</small></div>
+    <div class="tx"><b>${esc(b.title)}</b><small><span class="fac"><i style="background:${f.color}"></i>${esc(f.name)}</span> · ${b.is_daily?"يوميًا ":""}${fmtT(b.start_at)} – ${fmtT(b.end_at)}${b.event_type?` · ${esc(b.event_type)}`:""}</small></div>
     <span class="badge ${b.status}">${STATUS[b.status]}</span></div>`;
 }
 
@@ -977,7 +1101,7 @@ function renderAdm(){
   $("#aSeg").innerHTML=[["pending","قيد الاعتماد"],["approved","معتمدة"],["rejected","مرفوضة"],["","الكل"]]
     .map(([k,l])=>`<button data-ast="${k}" class="${aStatus==k?"on":""}">${l}<em>${cnt(k)}</em></button>`).join("");
   const f=$("#aFac").value, q=$("#aQ").value.trim().toLowerCase();
-  const list=all.filter(b=>(!aStatus||b.status==aStatus)&&(!f||b.facility==f)&&(!q||[b.title,b.applicant_name,b.applicant_phone,b.department,b.partner,b.id.slice(0,8)].some(x=>(x||"").toLowerCase().includes(q))))
+  const list=all.filter(b=>(!aStatus||b.status==aStatus)&&(!f||b.facility==f)&&(!q||[b.title,b.applicant_name,b.applicant_phone,b.department,b.partner,b.event_type,b.org_type,b.id.slice(0,8)].some(x=>(x||"").toLowerCase().includes(q))))
     .sort((a,b)=>aStatus=="pending"?a.start_at.localeCompare(b.start_at):b.start_at.localeCompare(a.start_at));
   if(!list.length){$("#admList").innerHTML=`<div class="panel empty">لا توجد طلبات</div>`;return}
   const appr=all.filter(b=>b.status=="approved");
@@ -986,10 +1110,12 @@ function renderAdm(){
     return `<div class="admcard" style="--c:${fc.color}" data-aid="${b.id}">
       <div class="admhead"><div><h3>${esc(b.title)}</h3><span class="fac muted"><i style="background:${fc.color}"></i>${esc(fc.name)} · رقم الطلب <span dir="ltr" style="font-family:Lato">${b.id.slice(0,8).toUpperCase()}</span></span></div>
       <span class="badge ${b.status}">${STATUS[b.status]}</span></div>
-      <div class="kv"><div><span>من</span>${fmtDT(b.start_at)}</div><div><span>إلى</span>${fmtDT(b.end_at)}</div>
-        <div><span>الحضور المتوقع</span>${b.attendees}</div><div><span>القسم المختص</span>${esc(b.department)}</div>
-        <div><span>الجهة المشاركة</span>${esc(b.partner)||"—"}</div>
-        <div><span>مقدّم الطلب</span>${esc(b.applicant_name)} · <span dir="ltr" style="display:inline;font-size:inherit;color:inherit">${esc(b.applicant_phone)}</span></div></div>
+      <div class="kv"><div style="grid-column:1/-1"><span>الموعد</span>${fmtRange(b)}</div>
+        <div><span>نوع الفعالية</span>${esc(b.event_type)||"—"}</div><div><span>الحضور المتوقع</span>${b.attendees}</div>
+        <div><span>الفئة المستهدفة</span>${tagsHTML(b.audience)}</div><div><span>القسم المختص</span>${esc(b.department)}</div>
+        <div><span>الجهة المشاركة</span>${esc(b.partner)||"—"}</div><div><span>نوع الجهة المتقدمة</span>${esc(b.org_type)||"—"}</div>
+        <div><span>مقدّم الطلب</span>${esc(b.applicant_name)} · <span dir="ltr" style="display:inline;font-size:inherit;color:inherit">${esc(b.applicant_phone)}</span></div>
+        <div style="grid-column:1/-1"><span>احتياجات البرنامج</span>${tagsHTML(b.needs)}</div></div>
       <p class="muted" style="margin:0 0 10px;font-size:14px">${esc(b.description)}</p>
       ${clash.length&&b.status!="approved"?`<div class="notice warn" style="margin:0 0 10px">تنبيه: يتعارض مع حجز معتمد: ${clash.map(x=>`«${esc(x.title)}»`).join("، ")}</div>`:""}
       <div class="admact">
@@ -1038,7 +1164,7 @@ function renderCal(){
     const list=vis.filter(b=>ovr(b,ds,de));
     h+=`<div class="day${d.getMonth()!=aMonth.getMonth()?" out":""}${sameDay(d,today)?" today":""}">
       <div class="dn"><span>${d.getDate()}</span><span class="h">${hijri(d,{day:"numeric"})}</span></div>
-      ${list.slice(0,3).map(b=>{const f=FAC[b.facility]||{};return `<button class="chip ${b.status}" style="border-color:${f.color};--cc:${f.color}" data-bid="${b.id}" title="${esc(b.title)} — ${esc(f.name)} — ${STATUS[b.status]}">${sameDay(new Date(b.start_at),ds)?fmtT(b.start_at)+" ":""}${esc(b.title)}</button>`}).join("")}
+      ${list.slice(0,3).map(b=>{const f=FAC[b.facility]||{};return `<button class="chip ${b.status}" style="border-color:${f.color};--cc:${f.color}" data-bid="${b.id}" title="${esc(b.title)} — ${esc(f.name)} — ${STATUS[b.status]}">${(daySegs(b,ds,de)[0]||[0])[0]>=+ds?fmtT(daySegs(b,ds,de)[0][0])+" ":""}${esc(b.title)}</button>`}).join("")}
       ${list.length>3?`<button class="more" data-day="${ds.toISOString()}">+${list.length-3} أخرى</button>`:""}
     </div>`;
   }
@@ -1050,8 +1176,8 @@ function renderTable(){
     .sort((a,b)=>a.start_at.localeCompare(b.start_at));
   $("#tbody").innerHTML=rows.length?rows.map(b=>{const f=FAC[b.facility]||{};return `<tr class="clk" data-bid="${b.id}">
     <td dir="ltr" style="font-family:Lato;text-align:right">${b.id.slice(0,8).toUpperCase()}</td>
-    <td><b>${esc(b.title)}</b></td><td><span class="fac"><i style="background:${f.color}"></i>${esc(f.name)}</span></td>
-    <td>${fmtDT(b.start_at)}</td><td>${fmtDT(b.end_at)}</td><td class="n">${b.attendees??"—"}</td>
+    <td><b>${esc(b.title)}</b></td><td>${esc(b.event_type)||"—"}</td><td><span class="fac"><i style="background:${f.color}"></i>${esc(f.name)}</span></td>
+    <td>${fmtRange(b)}</td><td class="n">${b.attendees??"—"}</td>
     <td>${esc(b.department)||"—"}</td><td>${esc(b.partner)||"—"}</td>
     <td><span class="badge ${b.status}">${STATUS[b.status]}</span></td><td>${esc(b.officer)||'<span class="muted">—</span>'}</td><td class="n">${+b.amount?SAR(b.amount):"—"}</td></tr>`}).join("")
     :`<tr><td colspan="11" class="empty">لا توجد حجوزات في هذا الشهر</td></tr>`;
@@ -1061,7 +1187,9 @@ function showDetail(b){
   $("#detailBody").innerHTML=`<span class="badge ${b.status}">${STATUS[b.status]}</span>
     <h2 style="margin:8px 0 4px">${esc(b.title)}</h2><span class="fac"><i style="background:${f.color}"></i>${esc(f.name)} · رقم الطلب <span dir="ltr" style="font-family:Lato">${b.id.slice(0,8).toUpperCase()}</span></span>
     <p class="desc">${esc(b.description)||"—"}</p>
-    <div class="kv"><div><span>من</span>${fmtDT(b.start_at)}</div><div><span>إلى</span>${fmtDT(b.end_at)}</div>
+    <div class="kv"><div style="grid-column:1/-1"><span>الموعد</span>${fmtRange(b)}</div>
+    <div><span>نوع الفعالية</span>${esc(b.event_type)||"—"}</div><div><span>الفئة المستهدفة</span>${tagsHTML(b.audience)}</div>
+    <div><span>نوع الجهة المتقدمة</span>${esc(b.org_type)||"—"}</div><div><span>احتياجات البرنامج</span>${tagsHTML(b.needs)}</div>
     <div><span>الحضور المتوقع</span>${b.attendees??"—"}</div><div><span>القسم المختص</span>${esc(b.department)||"—"}</div>
     <div><span>الجهة المشاركة</span>${esc(b.partner)||"—"}</div><div><span>مسؤول الحجز</span>${esc(b.officer)||"—"}</div>
     <div><span>مقدّم الطلب</span>${esc(b.applicant_name)}</div><div><span>الجوال</span><span dir="ltr" style="display:inline;color:inherit;font-size:inherit">${esc(b.applicant_phone)}</span></div>
@@ -1106,15 +1234,24 @@ function renderRep(){
   const de=Object.entries(dm).sort((a,b)=>b[1].n-a[1].n);
   $("#rByDept").innerHTML=`<thead><tr><th>القسم المختص</th><th>الطلبات</th><th>المعتمدة</th><th>الحضور</th><th>المبالغ</th></tr></thead><tbody>`+
     (de.length?de.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n">${v.a}</td><td class="n">${v.att.toLocaleString("en-US")}</td><td class="n">${v.m.toLocaleString("en-US")}</td></tr>`).join(""):`<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>`)+`</tbody>`;
+  const group=(key)=>{const m={};rows.forEach(b=>{const k=(b[key]||"—");(m[k]=m[k]||{n:0,a:0,att:0});m[k].n++;if(b.status=="approved"){m[k].a++;m[k].att+=(+b.attendees||0)}});return Object.entries(m).sort((a,b)=>b[1].n-a[1].n)};
+  const gtable=(title,g)=>`<thead><tr><th>${title}</th><th>الطلبات</th><th>المعتمدة</th><th>الحضور</th></tr></thead><tbody>`+
+    (g.length?g.map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v.n}</td><td class="n">${v.a}</td><td class="n">${v.att.toLocaleString("en-US")}</td></tr>`).join(""):`<tr><td colspan="4" class="empty">لا توجد بيانات</td></tr>`)+`</tbody>`;
+  $("#rByType").innerHTML=gtable("نوع الفعالية",group("event_type"));
+  $("#rByOrg").innerHTML=gtable("نوع الجهة",group("org_type"));
+  const cnt=(key,list)=>list.map(x=>[x,appr.filter(b=>arr(b[key]).includes(x)).length]);
+  const pills=l=>`<div class="tags" style="gap:8px">${l.map(([k,n])=>`<span style="font-size:13px;padding:4px 12px">${esc(k)} <b style="font-family:Lato">${n}</b></span>`).join("")}</div>`;
+  $("#rAudNeeds").innerHTML=`<div style="margin-bottom:10px"><b style="font-size:14px">الفئات المستهدفة</b>${pills(cnt("audience",CONFIG.AUDIENCES))}</div>
+    <div><b style="font-size:14px">احتياجات البرامج</b>${pills(cnt("needs",CONFIG.NEEDS.map(n=>n.name)))}</div>`;
   $("#rCount").textContent=rows.length+" حجز";
-  $("#rDetail").innerHTML=`<thead><tr><th>رقم الطلب</th><th>الفعالية</th><th>المرفق</th><th>من</th><th>إلى</th><th>الحضور</th><th>القسم المختص</th><th>الجهة المشاركة</th><th>مقدّم الطلب</th><th>الحالة</th><th>مسؤول الحجز</th><th>المبلغ</th></tr></thead><tbody>`+
-    (rows.length?rows.map(b=>`<tr class="clk" data-bid="${b.id}"><td dir="ltr" style="font-family:Lato;text-align:right">${b.id.slice(0,8).toUpperCase()}</td><td>${esc(b.title)}</td><td>${esc(FAC[b.facility]?.name)}</td><td>${fmtDT(b.start_at)}</td><td>${fmtDT(b.end_at)}</td><td class="n">${b.attendees}</td><td>${esc(b.department)}</td><td>${esc(b.partner)||"—"}</td><td>${esc(b.applicant_name)}</td><td><span class="badge ${b.status}">${STATUS[b.status]}</span></td><td>${esc(b.officer)||"—"}</td><td class="n">${+b.amount?(+b.amount).toLocaleString("en-US"):"—"}</td></tr>`).join(""):`<tr><td colspan="12" class="empty">لا توجد حجوزات في هذا المدى</td></tr>`)+`</tbody>`;
+  $("#rDetail").innerHTML=`<thead><tr><th>رقم الطلب</th><th>الفعالية</th><th>النوع</th><th>المرفق</th><th>الموعد</th><th>الحضور</th><th>القسم المختص</th><th>نوع الجهة</th><th>مقدّم الطلب</th><th>الحالة</th><th>مسؤول الحجز</th><th>المبلغ</th></tr></thead><tbody>`+
+    (rows.length?rows.map(b=>`<tr class="clk" data-bid="${b.id}"><td dir="ltr" style="font-family:Lato;text-align:right">${b.id.slice(0,8).toUpperCase()}</td><td>${esc(b.title)}</td><td>${esc(b.event_type)||"—"}</td><td>${esc(FAC[b.facility]?.name)}</td><td>${fmtRange(b)}</td><td class="n">${b.attendees}</td><td>${esc(b.department)}</td><td>${esc(b.org_type)||"—"}</td><td>${esc(b.applicant_name)}</td><td><span class="badge ${b.status}">${STATUS[b.status]}</span></td><td>${esc(b.officer)||"—"}</td><td class="n">${+b.amount?(+b.amount).toLocaleString("en-US"):"—"}</td></tr>`).join(""):`<tr><td colspan="12" class="empty">لا توجد حجوزات في هذا المدى</td></tr>`)+`</tbody>`;
   renderDetailHead(from,to,fac,st,dep); renderBrief(from,to,fac,st,dep);
 }
 function repRowsData(){
-  const H=["رقم الطلب","الفعالية","الوصف","المرفق","من","إلى","الساعات","الحضور المتوقع","القسم المختص","الجهة المشاركة","مقدّم الطلب","الجوال","الحالة","مسؤول الحجز","المبلغ المدفوع (ريال)","ملاحظة الإدارة"];
+  const H=["رقم الطلب","الفعالية","نوع الفعالية","الوصف","المرفق","من","إلى","المدة","الساعات","الحضور المتوقع","الفئة المستهدفة","احتياجات البرنامج","القسم المختص","الجهة المشاركة","نوع الجهة المتقدمة","مقدّم الطلب","الجوال","الحالة","مسؤول الحجز","المبلغ المدفوع (ريال)","ملاحظة الإدارة"];
   const fmt=d=>{const x=new Date(d);return `${ymd(x)} ${String(x.getHours()).padStart(2,"0")}:${String(x.getMinutes()).padStart(2,"0")}`};
-  return [H,...rep.rows.map(b=>[b.id.slice(0,8).toUpperCase(),b.title,b.description,FAC[b.facility]?.name,fmt(b.start_at),fmt(b.end_at),nf(bookedHours(b,rep.from,rep.to)),b.attendees,b.department,b.partner||"",b.applicant_name,b.applicant_phone,STATUS[b.status],b.officer||"",+b.amount||0,b.admin_note||""])];
+  return [H,...rep.rows.map(b=>[b.id.slice(0,8).toUpperCase(),b.title,b.event_type||"",b.description,FAC[b.facility]?.name,fmt(b.start_at),fmt(b.end_at),b.is_daily?`${daysTxt(segs(b).length)} (يوميًا)`:"يوم واحد",nf(bookedHours(b,rep.from,rep.to)),b.attendees,arr(b.audience).join("، "),arr(b.needs).join("، "),b.department,b.partner||"",b.org_type||"",b.applicant_name,b.applicant_phone,STATUS[b.status],b.officer||"",+b.amount||0,b.admin_note||""])];
 }
 $("#rXls").addEventListener("click",()=>{
   if(!rep.rows.length) return toast("لا توجد بيانات للتصدير");
